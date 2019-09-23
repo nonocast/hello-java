@@ -7,7 +7,7 @@ C这部分采用之前的[calc](https://github.com/nonocast/learn-c/tree/master/
 
 [JNI 开发流程 - JNI/NDK 开发指南 - 极客学院Wiki](http://wiki.jikexueyuan.com/project/jni-ndk-developer-guide/workflow.html)
 
-JNI 开发流程主要分为以下 6 步：
+JNI 开发流程主要分为以下 4 步：
 - 编写Java native申明
 - 生成jni c headerG
 - 实现jni c
