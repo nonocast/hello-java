@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    jcenter() 
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'cn.nonocast.App'
+    }
+}
+run
+{
+    systemProperty "java.library.path", "$projectDir/jni"
+}
+dependencies {
+
+}
+
+mainClassName = 'cn.nonocast.App' 
