@@ -1,4 +1,4 @@
-Gradle and Java
+Java and Gradle
 ===============
 初始化
 `gradle init`

@@ -1,4 +1,4 @@
-INTEROP
+INTEROP (JNI)
 ========
 我们来看Java和C的互操作，这也是一个困然我很久的问题。
 
