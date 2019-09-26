@@ -90,5 +90,7 @@ $ java -jar app.jar
 hello world
 ```
 
+通过command+.可以快速quickfix,import包名，要是一个个打不得疯吗？
+
 剩下的参考:
 [Building Java Applications](https://guides.gradle.org/building-java-applications/)
