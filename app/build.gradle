@@ -12,12 +12,13 @@ jar {
         attributes 'Main-Class': 'cn.nonocast.App'
     }
 }
-run
-{
+run {
     systemProperty "java.library.path", "$projectDir/jni"
 }
 dependencies {
-
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha0'
+    // implementation group: 'org.slf4j', name: 'slf4j-simple', version: '2.0.0-alpha0'
+    implementation group:'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha4'
 }
 
 mainClassName = 'cn.nonocast.App' 
