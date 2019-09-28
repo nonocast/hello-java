@@ -15,7 +15,14 @@ class App {
     this.server = net
       .createServer(socket => {
         debug("<<< client connected");
-        socket.write("hello world\n");
+
+        // 发3个连着的包
+        socket.write(
+          Buffer.from(
+            "0700010101001E4B11002100030D260331801E0001000001719A11002100030D260331801E0001000001719A",
+            "hex"
+          )
+        );
 
         socket.on("data", data => {
           check.assert(util.isBuffer(data));

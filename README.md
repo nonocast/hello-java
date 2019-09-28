@@ -3,6 +3,7 @@ Java and Gradle
 初始化
 `gradle init`
 
+注: 最新的版本5.6已经支持交互过程，cool
 
 build.gradle
 ```
