@@ -4,9 +4,8 @@ LOGGING
 logback是slf4j的native implementations,就是亲儿子。
 
 build.gradle
-```
-implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha0'
-```
+`implementation 'org.slf4j:slf4j-api:2.0.0-alpha0'`
+
 
 app.java
 ```
