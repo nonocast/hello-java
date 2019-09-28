@@ -1,0 +1,22 @@
+{
+  "name": "tcp-server-mock",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env DEBUG=app* nodemon src/index",
+    "test": "cross-env DEBUG=test* mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "check-types": "^10.0.0",
+    "cross-env": "^6.0.0",
+    "debug": "^4.1.1",
+    "lodash": "^4.17.15"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "nodemon": "^1.19.2"
+  }
+}
