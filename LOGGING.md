@@ -54,8 +54,7 @@ src/main/resources/logback.xml (取决于sourceSet, 一般都是这个)
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
-  <logger name="deng" level="DEBUG" />
-  <root level="INFO">
+  <root level="DEBUG">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
