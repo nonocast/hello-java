@@ -4,6 +4,7 @@ LOGGING
 logback是slf4j的native implementations,就是亲儿子。
 
 build.gradle
+
 `implementation 'org.slf4j:slf4j-api:2.0.0-alpha0'`
 
 
@@ -40,8 +41,8 @@ $ gradle run -q
 导入logback
 ```
 dependencies {
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.0-alpha0'
-    implementation group:'ch.qos.logback', name: 'logback-classic', version: '1.3.0-alpha4'
+    implementation 'org.slf4j:slf4j-api:2.0.0-alpha0'
+    implementation 'ch.qos.logback:logback-classic:1.3.0-alpha4'
 }
 ```
 不用改任何client代码, 直接运行就已经采用logback, 然后就是通过配置文件来调校logback,
