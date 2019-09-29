@@ -24,6 +24,13 @@ class App {
           )
         );
 
+        socket.write(
+          Buffer.from(
+            "1500010301010CE20000194604005221003DFF4C95DD1500010301010CE20000194604005221003DFF4C95DD0700010101001E4B",
+            "hex"
+          )
+        );
+
         socket.on("data", data => {
           check.assert(util.isBuffer(data));
           let result = router.append(data);

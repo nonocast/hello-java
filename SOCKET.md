@@ -118,3 +118,4 @@ BIO 傻, NIO 难用, AIO 没人用
 - [NIO vs BIO该如何选择 | 枫秀](http://fengxiu.club/posts/8300084f/)
 - [Netty 系列 | g5niusx的小黑屋](https://www.g5niusx.com/tags.html#netty)
 - [彻底理解Netty，这一篇文章就够了 - 掘金](https://juejin.im/post/5bdaf8ea6fb9a0227b02275a)
+- [Netty Client重连实现 | 鸟窝](https://colobu.com/2015/08/14/netty-tcp-client-with-reconnect-handling/)

@@ -92,6 +92,7 @@ hello world
 ```
 
 通过command+.可以快速quickfix,import包名，要是一个个打不得疯吗？
+如果在gradle中增加依赖，需要右键build.gradle菜单中选择update project configuration (找的我好苦)
 
 剩下的参考:
 [Building Java Applications](https://guides.gradle.org/building-java-applications/)

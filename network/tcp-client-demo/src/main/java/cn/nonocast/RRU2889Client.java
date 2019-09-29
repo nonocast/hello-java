@@ -12,7 +12,7 @@ public abstract class RRU2889Client {
   }
 
   static public RRU2889Client create() {
-    return new RRU2889ClientBIOImpl();
+    return new RRU2889ClientNettyImpl();
   }
 
   public void open() {
