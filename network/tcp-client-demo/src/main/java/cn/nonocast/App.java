@@ -2,8 +2,8 @@ package cn.nonocast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -14,15 +14,28 @@ public class App {
   private RRU2889Client client;
 
   public App() {
-    this.client = new RRU2889Client();
+    this.client = RRU2889Client.create();
+    this.client.setTagListener((tags)-> {
+      logger.debug("callback.tags: {}", tags);
+    });
   }
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    new App().config().open();
+    new App().config().open().hold().close();
+  }
+
+  private App hold() throws IOException {
+    new InputStreamReader(System.in).read();
+    return this;
   }
 
   public App open() throws InterruptedException {
     this.client.open();
+    return this;
+  }
+
+  public App close() {
+    this.client.close();
     return this;
   }
 
