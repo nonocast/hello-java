@@ -60,12 +60,16 @@ class Router {
         let resps = [
           Buffer.from("0700010101001E4B", "hex"),
           Buffer.from(
+            "1500010301010CE20000194604005221003DFF4C95DD1500010301010CE20000194604005221003DFF4C95DD1500010301010CE20000194604005221003DFF4C95DD0700010101001E4B",
+            "hex"
+          ),
+          Buffer.from(
             "1500010301010CE20000194604005221003DFF4C95DD1500010301010CE20000194604005221003DFF4C95DD0700010101001E4B",
             "hex"
           )
         ];
 
-        return resps[this.i++ % 2];
+        return resps[this.i++ % 3];
       };
     }
   }

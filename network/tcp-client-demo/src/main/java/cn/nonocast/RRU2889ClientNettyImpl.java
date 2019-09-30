@@ -1,5 +1,7 @@
 package cn.nonocast;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -11,104 +13,138 @@ import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import io.netty.util.TimerTask;
 
 public class RRU2889ClientNettyImpl extends RRU2889Client {
-  private static final Logger logger = LoggerFactory.getLogger(RRU2889Client.class);
+  private static final Logger logger = LoggerFactory.getLogger(RRU2889ClientNettyImpl.class);
+  private EventLoopGroup group;
 
-  private Channel channel;
-  private Timer timer;
+  class AppClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
+    private RRU2889ClientNettyImpl app;
+    private List<String> cache;
 
-  class Adapter extends ChannelInboundHandlerAdapter {
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-
+    public AppClientHandler(RRU2889ClientNettyImpl app) {
+      this.app = app;
+      this.cache = new ArrayList<>();
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-      ByteBuf buf = (ByteBuf) msg;
-      logger.debug("{}", buf.toString());
-      logger.debug("{}", ByteBufUtil.hexDump(buf));
-    }
+    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+      String body = ByteBufUtil.hexDump(in);
+      logger.debug("receive({}): {}", in.readableBytes(), body);
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      cause.printStackTrace();
-      ctx.close();
-    }
-  }
-
-  public void open() {
-    // 创建基于Reactor的NIO线程组
-    EventLoopGroup workerGroup = new NioEventLoopGroup();
-
-    try {
-      Bootstrap b = (new Bootstrap().group(workerGroup).channel(NioSocketChannel.class)
-          .option(ChannelOption.SO_KEEPALIVE, true).handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-              ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
-              ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(255, 0, 1, 0, 1));
-              ch.pipeline().addLast(new Adapter());
-            }
-          }));
-
-      // Start the client.
-      // sync表示转为同步，可以理解为await
-      ChannelFuture f = b.connect(this.endpoint).sync();
-      this.channel = f.channel();
-
-      setupTimer();
-
-      // Wait until the connection is closed.
-      this.channel.closeFuture().sync();
-    } catch (InterruptedException e) {
-      logger.debug(e.getMessage());
-    } finally {
-      logger.debug("shutdownGracefully");
-      workerGroup.shutdownGracefully();
-    }
-  }
-
-  private void setupTimer() {
-    this.timer = new HashedWheelTimer();
-    this.timer.newTimeout(new TimerTask() {
-      @Override
-      public void run(Timeout timeout) throws Exception {
-        logger.debug(">>>");
-        RRU2889ClientNettyImpl.this
-            .send(new byte[] { (byte) 0x04, (byte) 0xff, (byte) 0x21, (byte) 0x19, (byte) 0x95 });
-        RRU2889ClientNettyImpl.this.timer.newTimeout(this, 2, TimeUnit.SECONDS);
+      if (in.readableBytes() == 21) {
+        String tag = body.substring(12, 12 + 24);
+        this.cache.add(tag);
       }
-    }, 2, TimeUnit.SECONDS);
-  }
 
-  private void closeTimer() {
-    if (this.timer != null) {
-      this.timer.stop();
-      this.timer = null;
+      if (in.readableBytes() == 7 && this.cache.size() > 0) {
+        this.app.fireTagNotify(this.cache);
+        this.cache.clear();
+      }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+      if (evt instanceof IdleStateEvent) {
+        IdleStateEvent idleState = (IdleStateEvent) evt;
+        if (idleState.state() == IdleState.ALL_IDLE) {
+          ByteBuf ping = Unpooled.copiedBuffer(
+              new byte[] { (byte) 0x06, (byte) 0x00, (byte) 0x01, (byte) 0x04, (byte) 0xff, (byte) 0xd4, (byte) 0x39 });
+          ctx.writeAndFlush(ping);
+        }
+      }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+      final EventLoop eventLoop = ctx.channel().eventLoop();
+      eventLoop.schedule(new Runnable() {
+        @Override
+        public void run() {
+          AppClientHandler.this.app.createBootstrap(new Bootstrap(), eventLoop);
+        }
+      }, 1L, TimeUnit.SECONDS);
+      super.channelInactive(ctx);
     }
   }
 
-  public void send(byte[] data) {
-    ByteBuf firstMessage = Unpooled.buffer();
-    firstMessage.writeBytes(data);
-    this.channel.writeAndFlush(firstMessage);
+  public class ConnectionListener implements ChannelFutureListener {
+    private RRU2889ClientNettyImpl app;
+
+    public ConnectionListener(RRU2889ClientNettyImpl app) {
+      this.app = app;
+    }
+
+    @Override
+    public void operationComplete(ChannelFuture future) throws Exception {
+      if (!future.isSuccess()) {
+        logger.debug("reconnect");
+        final EventLoop loop = future.channel().eventLoop();
+        loop.schedule(new Runnable() {
+          @Override
+          public void run() {
+            app.createBootstrap(new Bootstrap(), loop);
+          }
+        }, 1L, TimeUnit.SECONDS);
+      }
+    }
+  }
+
+  @Override
+  public void open() {
+    this.group = new NioEventLoopGroup();
+    this.createBootstrap(new Bootstrap(), group);
+  }
+
+  @Override
+  public void close() {
+    if (this.group != null) {
+      try {
+        this.group.shutdownGracefully().sync();
+      } catch (Exception e) {
+        // ignore
+      }
+    }
+  }
+
+  public Bootstrap createBootstrap(Bootstrap bootstrap, EventLoopGroup group) {
+    if (bootstrap != null) {
+      bootstrap.group(group);
+      bootstrap.channel(NioSocketChannel.class);
+      bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+      bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+        @Override
+        protected void initChannel(SocketChannel ch) throws Exception {
+          ch.pipeline().addFirst(new IdleStateHandler(0, 0, 2, TimeUnit.SECONDS));
+          ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(255, 0, 1, 0, 1));
+          ch.pipeline().addLast(new AppClientHandler(RRU2889ClientNettyImpl.this));
+        }
+      });
+      bootstrap.remoteAddress(this.host, this.port);
+      bootstrap.connect().addListener(new ConnectionListener(RRU2889ClientNettyImpl.this));
+    }
+    return bootstrap;
   }
 
 }

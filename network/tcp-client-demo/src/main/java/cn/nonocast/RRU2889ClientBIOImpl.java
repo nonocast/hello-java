@@ -3,6 +3,7 @@ package cn.nonocast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import io.netty.buffer.ByteBufUtil;
 
 public class RRU2889ClientBIOImpl extends RRU2889Client {
-  private static final Logger logger = LoggerFactory.getLogger(RRU2889Client.class);
+  private static final Logger logger = LoggerFactory.getLogger(RRU2889ClientBIOImpl.class);
   private Timer timer;
   private Socket client;
   private Thread clientReceiveThread;
@@ -41,7 +42,7 @@ public class RRU2889ClientBIOImpl extends RRU2889Client {
     logger.debug("setupSocket()");
 
     this.client = new Socket();
-    this.client.connect(this.endpoint);
+    this.client.connect(new InetSocketAddress(this.host, this.port));
 
     this.clientReceiveThread = new Thread(() -> {
       logger.debug("bio: thread");

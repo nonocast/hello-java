@@ -4,9 +4,19 @@ const util = require("util");
 const check = require("check-types");
 const router = require("./router");
 
+// app.js port
 class App {
   constructor() {
     this.port = 12009;
+
+    try {
+      let args = process.argv.slice(2);
+      if(args.length > 0 && parseInt(args[0])) {
+        this.port = parseInt(args[0]);
+      }
+    } catch {
+      // ignore
+    }
   }
 
   open() {
