@@ -9,7 +9,7 @@ C这部分采用之前的[calc](https://github.com/nonocast/learn-c/tree/master/
 
 JNI 开发流程主要分为以下 4 步：
 - 编写Java native申明
-- 生成jni c headerG
+- 生成jni c header
 - 实现jni c
 - 在jni c中link linux so
 
