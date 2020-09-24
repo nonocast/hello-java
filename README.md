@@ -15,6 +15,7 @@ task hello {
 ```
 运行
 `gradle hello`
+
 `gradle -q hello` 
 
 q means quite
